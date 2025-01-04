@@ -1,0 +1,263 @@
+{% extends 'store/main.html' %}
+{% load static %}
+
+{% block content %}
+<div class="checkout-container">
+    <div class="flex-container">
+        <div class="shipping-info-section">
+            <h4>Shipping Information</h4>
+            <hr>
+            <form id="shipping-form" class="styled-form" method="POST" action="{% url 'checkout_process' %}" onsubmit="return false;"> <!-- Prevent default form submission -->
+                {% csrf_token %}
+                <div id="shipping-info">
+                    {% for field in fields_list %}
+                    <div class="form-field">
+                        <input required class="form-control" 
+                               type="{% if field == 'email' %}email{% else %}text{% endif %}" 
+                               name="{{ field }}" 
+                               placeholder="{{ field|title }}" 
+                               id="{{ field }}" 
+                               aria-label="{{ field|title }}" 
+                               {% if not order.shipping %}disabled{% endif %}>
+                    </div>
+                    {% endfor %}
+                </div>
+            </form>
+        </div>
+
+        <div class="order-summary-section">
+            <a class="btn btn-outline-dark" href="{% url 'cart' %}">&#x2190; Back to Cart</a>
+            <hr>
+            <h3>Order Summary</h3>
+            <hr>
+
+            {% if items %}
+                {% for item in items %}
+                <div class="cart-row" aria-label="Cart Item">
+                    <img class="row-image" src="{{ item.product.imageURL }}" alt="{{ item.product.name }}">
+                    <div class="cart-item-details">
+                        <p class="item-name">{{ item.product.name }}</p>
+                        <p class="item-price">${{ item.product.price|floatformat:2 }}</p>
+                        <p class="item-quantity">x{{ item.quantity }}</p>
+                    </div>
+                </div>
+                {% endfor %}
+                <h5 class="summary-item">Items: {{ order.get_cart_items }}</h5>
+                <h5 class="summary-total">Total: ${{ order.get_cart_total|floatformat:2 }}</h5>
+
+                <div class="payment-info-section">
+                    <h4>Payment Information</h4>
+                    <div id="payment-info">
+                        {% if not payment_available %}
+                            <p>Payment option is currently not available.</p>
+                            <button class="btn btn-secondary animated-btn" disabled>Make Payment</button>
+                        {% else %}
+                            <button id="make-payment" class="btn btn-primary animated-btn" aria-label="Make Payment">Make Payment</button>
+                        {% endif %}
+                    </div>
+                </div>
+
+            {% else %}
+                <p>No items in your cart.</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <div id="loading-spinner" class="spinner-border text-primary hidden" role="status" style="display:none;">
+        <span class="sr-only">Loading...</span>
+    </div>
+</div>
+
+<style>
+.checkout-container {
+    max-width: 1200px; 
+    margin: 0 auto;
+    padding: 20px;
+    font-family: 'Arial', sans-serif;
+}
+
+/* Flexbox layout for shipping info and order summary */
+.flex-container {
+    display: flex;
+    justify-content: space-between;
+    gap: 20px; /* Space between the two sections */
+}
+
+/* Shipping info section styling */
+.shipping-info-section {
+    flex: 1; /* Allow it to take equal width */
+    min-width: 400px; /* Minimum width for shipping info */
+}
+
+/* Order summary section styling */
+.order-summary-section {
+    flex: 1; /* Allow it to take equal width */
+    min-width: 400px; /* Minimum width for order summary */
+    background-color: #f4f4f4;
+    padding: 25px;
+    border-radius: 15px;
+}
+
+/* General form styling */
+.styled-form {
+    background-color: #f9f9f9;
+    padding: 25px;
+    border-radius: 15px;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+.form-field {
+    margin-bottom: 20px;
+}
+
+.form-field input {
+    padding: 15px;
+    font-size: 1.1rem;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    width: 100%;
+    transition: border-color 0.3s, box-shadow 0.3s;
+}
+
+.form-field input:focus {
+    border-color: #28a745;
+    box-shadow: 0 0 10px rgba(40, 167, 69, 0.5);
+}
+
+/* Button styling */
+.animated-btn {
+    background-color: #28a745;
+    border: none;
+    color: white;
+    padding: 12px 20px;
+    border-radius: 30px;
+    font-size: 1.2rem;
+    transition: background-color 0.3s;
+    width: 100%;
+    text-align: center; /* Center text in buttons */
+}
+
+.animated-btn:hover {
+    background-color: #218838;
+}
+
+/* Payment information section */
+.payment-info-section {
+    margin-top: 20px;
+}
+
+/* Cart row styling */
+.cart-row {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.cart-row img {
+    width: 70px;
+    border-radius: 10px;
+    margin-right: 15px;
+}
+
+.cart-item-details {
+    display: flex;
+    flex-direction: column;
+}
+
+.item-name {
+    font-weight: bold;
+    font-size: 1.1rem; /* Increased font size */
+}
+
+.item-price, .item-quantity {
+    margin: 0;
+    font-size: 0.9rem;
+}
+
+/* Summary text styling */
+.summary-item,
+.summary-total {
+    font-weight: 600; /* Semi-bold text */
+    font-size: 1.1rem; /* Increased font size */
+    margin-top: 10px; /* Space above items */
+}
+
+/* General text styling */
+h4, h3 {
+    font-weight: bold; /* Make headings bold */
+    text-align: left; /* Align headings to the left */
+}
+
+hr {
+    border: 1px solid #ddd; /* Subtle line for section breaks */
+}
+</style>
+
+<script type="text/javascript">
+    const shippingRequired = '{{ order.shipping|yesno:"true,false" }}' === 'true';
+
+    // Log to debug if shipping info is displayed
+    console.log("Shipping required: ", shippingRequired);
+    document.getElementById('shipping-info').style.display = 'block'; // Ensure it is visible
+
+    const form = document.getElementById('shipping-form');
+    const makePaymentButton = document.getElementById('make-payment');
+
+    makePaymentButton.addEventListener('click', function() {
+        document.getElementById('loading-spinner').style.display = 'block';
+
+        if (!{{ payment_available|yesno:"true,false" }}) {
+            alert('Payment option is not available.');
+            document.getElementById('loading-spinner').style.display = 'none'; // Hide spinner
+            return;
+        }
+
+        submitFormData();
+    });
+
+    function submitFormData() {
+        const totalValue = parseFloat('{{ order.get_cart_total|floatformat:"2" }}');
+        console.log("Calculated Total Value: ", totalValue); // Debugging log
+
+        const userFormData = {
+            'name': form.name.value,
+            'email': form.email.value,
+            'total': totalValue,  // Use the calculated total
+        };
+
+        const shippingInfo = {
+            'address': form.address.value || null,
+            'city': form.city.value || null,
+            'state': form.state.value || null,
+            'zipcode': form.zipcode.value || null,
+            'country': form.country.value || null,
+        };
+
+        fetch("/process_order/", {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrftoken,
+            },
+            body: JSON.stringify({ 'form': userFormData, 'shipping': shippingInfo }),
+        })
+        .then(response => response.json())
+        .then(data => {
+            document.getElementById('loading-spinner').style.display = 'none';
+
+            if (data.message === 'Order processed successfully.') {
+                alert('Transaction completed successfully');
+                window.location.href = "{% url 'store' %}"; // Redirect to store after successful payment
+            } else {
+                console.error("Backend Error: ", data.error); // Debugging log
+                alert('Error processing order: ' + data.error);
+            }
+        })
+        .catch(error => {
+            document.getElementById('loading-spinner').style.display = 'none';
+            console.error("Fetch Error: ", error); // Debugging log
+            alert('There was an error processing your order. Please try again.');
+        });
+    }
+</script>
+{% endblock %}

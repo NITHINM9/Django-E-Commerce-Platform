@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Product</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: auto;
+            background: #fff;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 30px;
+        }
+
+        form {
+            margin: 20px 0;
+        }
+
+        input[type="text"],
+        input[type="number"],
+        input[type="file"] {
+            width: calc(100% - 20px);
+            padding: 12px;
+            margin: 10px 0;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            box-sizing: border-box;
+            transition: border-color 0.3s, box-shadow 0.3s;
+        }
+
+        input[type="text"]:focus,
+        input[type="number"]:focus {
+            border-color: #007bff;
+            box-shadow: 0 0 8px rgba(0, 123, 255, 0.2);
+            outline: none;
+        }
+
+        .checkbox-container {
+            display: flex;
+            align-items: center;
+            margin: 10px 0;
+        }
+
+        .checkbox-container input[type="checkbox"] {
+            width: auto;
+            margin-right: 10px;
+        }
+
+        .update {
+            padding: 12px 18px;
+            background-color: #5cb85c;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background-color 0.3s, box-shadow 0.3s;
+            font-size: 16px;
+            margin-top: 20px;
+            text-align: center;
+            display: inline-block;
+        }
+
+        button:hover {
+            background-color: #4cae4c;
+            box-shadow: 0 0 10px rgba(76, 174, 76, 0.4);
+        }
+
+        .cancel-link {
+            display: block;
+            text-align: center;
+            margin-top: 20px;
+            color: #007bff;
+            text-decoration: none;
+            font-weight: bold;
+            transition: color 0.3s;
+        }
+
+        .cancel-link:hover {
+            text-decoration: underline;
+            color: #0056b3;
+        }
+
+        .field-label {
+            margin: 10px 0 5px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .current-image {
+            margin: 20px 0;
+            text-align: center;
+        }
+
+        .current-image img {
+            max-width: 150px;
+            height: auto;
+            border-radius: 6px;
+            box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+        }
+
+        .current-image p {
+            margin-top: 10px;
+            color: #666;
+            font-size: 14px;
+        }
+
+        /* Styling for Price section */
+
+
+        .price-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            /* Align items vertically in the center */
+            gap: 10px;
+            margin-bottom: 12px;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            background-color: #fafafa;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+        }
+
+        .price-row input[type="number"],
+        .price-row input[type="text"] {
+            width: 45%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            transition: border-color 0.3s, box-shadow 0.3s;
+        }
+
+        .price-row input[type="number"]:focus,
+        .price-row input[type="text"]:focus {
+            border-color: #007bff;
+            box-shadow: 0 0 8px rgba(0, 123, 255, 0.1);
+            outline: none;
+        }
+
+        /* Adjust button alignment */
+        .price-row button {
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background-color 0.3s, transform 0.3s;
+            height: 40px;
+            width: 40px;
+            flex-shrink: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .price-row button:hover {
+            background-color: #0056b3;
+            transform: scale(1.05);
+        }
+
+        .fas {
+            margin-right: 5px;
+            font-size: 16px;
+        }
+
+
+        /* Responsive design */
+        @media (max-width: 600px) {
+            .price-row {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 5px;
+            }
+
+            .price-row input {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>Edit Product: {{ product.name }}</h1>
+
+        <form method="POST" enctype="multipart/form-data">
+            {% csrf_token %}
+
+            <!-- Existing Fields -->
+            <label class="field-label" for="name">Product Name</label>
+            <input type="text" name="name" id="name" placeholder="Product Name" value="{{ product.name }}" required>
+
+            <label class="field-label" for="description">Product Description</label>
+            <input type="text" name="description" id="description" placeholder="Product Description"
+                value="{{ product.description }}">
+
+            <label class="field-label" for="category">Category</label>
+            <input type="text" name="category" id="category" placeholder="Category" value="{{ product.category }}">
+
+            <label class="field-label" for="brand">Brand</label>
+            <input type="text" name="brand" id="brand" placeholder="Brand" value="{{ product.brand }}">
+
+            <label class="field-label" for="quantity_in_stock">Quantity in Stock</label>
+            <input type="number" name="quantity_in_stock" id="quantity_in_stock" placeholder="Quantity in Stock"
+                value="{{ product.quantity_in_stock }}" required>
+
+            <div class="checkbox-container">
+                <input type="checkbox" name="is_active" id="is_active" {% if product.is_active %}checked{% endif %}>
+                <label for="is_active" style="margin: 0;">Active</label>
+            </div>
+
+            <label class="field-label" for="image">Product Image</label>
+            <input type="file" name="image" id="image">
+
+            {% if product.image %}
+            <div class="current-image">
+                <img src="{{ product.image.url }}" alt="Current Image">
+                <p>Current Image: {{ product.image.name }}</p>
+            </div>
+            {% endif %}
+
+            <h2>Product Prices</h2>
+
+            <div class="price-row-container" id="priceRowContainer">
+                <div class="price-row">
+                    <input type="number" name="price_amount[]" placeholder="Amount" required>
+                    <input type="text" name="price_color[]" placeholder="Color" required>
+                    <button type="button" class="add-row-btn" data-action="add"><i class="fas fa-plus"></i></button>
+                </div>
+            </div>
+
+            <button class="update" type="button" id="submit-btn">Update Product</button>
+        </form>
+        <a href="{% url 'admin_dashboard' %}" class="cancel-link">Cancel</a>
+    </div>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+
+
+    <script>
+        $(document).ready(function () {
+            $('#submit-btn').on('click', function (e) {
+                e.preventDefault();
+                var formData = new FormData();
+                formData.append('csrfmiddlewaretoken', '{{ csrf_token }}');
+                formData.append('name', $('#name').val());
+                formData.append('description', $('#description').val());
+                formData.append('category', $('#category').val());
+                formData.append('brand', $('#brand').val());
+                formData.append('quantity_in_stock', $('#quantity_in_stock').val());
+                formData.append('is_active', $('#is_active').is(':checked') ? 'on' : 'off');
+
+                var imageFile = $('#image')[0].files[0];
+                if (imageFile) {
+                    formData.append('image', imageFile);
+                }
+
+                var prices = [];
+                $('.price-row').each(function () {
+                    var priceAmount = $(this).find('input[name="price_amount[]"]').val();
+                    var priceColor = $(this).find('input[name="price_color[]"]').val();
+                    if (priceAmount && priceColor) {
+                        prices.push({
+                            'amount': priceAmount,
+                            'color': priceColor
+                        });
+                    }
+                });
+
+                formData.append('prices', JSON.stringify(prices));
+
+                $.ajax({
+                    url: "{% url 'edit_product' product.id %}",
+                    type: "POST",
+                    data: formData,
+                    processData: false,
+                    contentType: false,
+                    success: function (response) {
+                        alert("Product updated successfully!");
+                        window.location.href = "{% url 'admin_dashboard' %}";
+                    },
+                    error: function (xhr, errmsg, err) {
+                        console.log(errmsg);
+                        alert("An error occurred. Please try again.");
+                    }
+                });
+            });
+
+            function addRow(button) {
+                var container = document.getElementById('priceRowContainer');
+
+                var newRow = document.createElement('div');
+                newRow.classList.add('price-row');
+
+                newRow.innerHTML = `
+                    <input type="number" name="price_amount[]" placeholder="Amount" required>
+                    <input type="text" name="price_color[]" placeholder="Color" required>
+                    <button type="button" class="add-row-btn" data-action="add"><i class="fas fa-plus"></i></button>
+                `;
+
+                container.appendChild(newRow);
+
+                button.innerHTML = '<i class="fas fa-trash"></i>';
+                button.setAttribute('data-action', 'remove');
+                button.classList.remove('add-row-btn');
+                button.classList.add('remove-row-btn');
+            }
+
+            function removeRow(button) {
+                var row = button.closest('.price-row');
+                row.remove();
+            }
+
+            document.getElementById('priceRowContainer').addEventListener('click', function (event) {
+                var target = event.target;
+
+                if (target.tagName.toLowerCase() === 'button' || target.tagName.toLowerCase() === 'i') {
+                    var button = target.tagName.toLowerCase() === 'button' ? target : target.closest('button');
+                    var action = button.getAttribute('data-action');
+
+                    if (action === 'add') {
+                        addRow(button);
+                    } else if (action === 'remove') {
+                        removeRow(button);
+                    }
+                }
+            });
+        });
+    </script>
+
+    <!-- <script>
+        // Function to add a new price row
+        function addRow(button) {
+            var container = document.getElementById('priceRowContainer');
+
+            // Create a new div for the row
+            var newRow = document.createElement('div');
+            newRow.classList.add('price-row');
+
+            // Create the inner HTML for the new row
+            newRow.innerHTML = `
+                <input type="number" name="price_amount[]" placeholder="Amount" required>
+                <input type="text" name="price_color[]" placeholder="Color" required>
+                <button type="button" class="add-row-btn" data-action="add"><i class="fas fa-plus"></i></button>
+            `;
+
+            // Append the new row to the container
+            container.appendChild(newRow);
+
+            // Change the current button's icon from plus to trash and update its action
+            button.innerHTML = '<i class="fas fa-trash"></i>';
+            button.setAttribute('data-action', 'remove');
+            button.classList.remove('add-row-btn');
+            button.classList.add('remove-row-btn');
+        }
+
+        // Function to remove a price row
+        function removeRow(button) {
+            var row = button.closest('.price-row');
+            row.remove();
+        }
+
+        // Event delegation for add/remove functionality
+        document.getElementById('priceRowContainer').addEventListener('click', function (event) {
+            var target = event.target;
+
+            if (target.tagName.toLowerCase() === 'button' || target.tagName.toLowerCase() === 'i') {
+                var button = target.tagName.toLowerCase() === 'button' ? target : target.closest('button');
+                var action = button.getAttribute('data-action');
+
+                if (action === 'add') {
+                    addRow(button);
+                } else if (action === 'remove') {
+                    removeRow(button);
+                }
+            }
+        });
+    </script> -->
+</body>
+
+</html>
